@@ -1,0 +1,47 @@
+name: Claims Module CI/CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore & build backend
+        run: |
+          dotnet restore ClaimsModule.sln
+          dotnet build ClaimsModule.sln -c Release --no-restore
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build -- --configuration production
+
+      - name: Publish API artifact
+        run: dotnet publish src/ClaimsModule.API/ClaimsModule.API.csproj -c Release -o ./publish/api
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: claims-module
+          path: |
+            publish/api
+            frontend/dist
+
+      # Configure Azure credentials and deploy steps when secrets are available:
+      # AZURE_WEBAPP_PUBLISH_PROFILE, SQL_CONNECTION_STRING, etc.

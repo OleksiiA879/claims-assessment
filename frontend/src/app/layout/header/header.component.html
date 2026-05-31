@@ -1,0 +1,19 @@
+<mat-toolbar color="primary">
+  <span class="brand">Claims Management</span>
+  <a mat-button routerLink="/claims" routerLinkActive="active-link">Claims</a>
+  <span class="spacer"></span>
+  <mat-form-field appearance="outline" class="role-select" subscriptSizing="dynamic">
+    <mat-label>Act as</mat-label>
+    <mat-select
+      [ngModel]="selectedUsername"
+      (ngModelChange)="selectedUsername = $event; onRoleChange($event)"
+    >
+      @for (user of auth.mockUsers; track user.username) {
+        <mat-option [value]="user.username">{{ user.displayName }} ({{ user.role }})</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  @if (auth.userName()) {
+    <span class="user-label">{{ auth.userName() }}</span>
+  }
+</mat-toolbar>

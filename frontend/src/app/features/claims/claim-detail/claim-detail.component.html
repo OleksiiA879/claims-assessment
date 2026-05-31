@@ -1,0 +1,235 @@
+<div class="page-container">
+  @if (claim(); as c) {
+    <div class="detail-header">
+      <div>
+        <a mat-button routerLink="/claims">
+          <mat-icon>arrow_back</mat-icon>
+          Back to list
+        </a>
+        <h1>{{ c.claimNumber }}</h1>
+        <span [class]="c.status | claimStatusClass">{{ c.status }}</span>
+      </div>
+    </div>
+
+    <mat-tab-group animationDuration="200ms">
+      <mat-tab label="Overview">
+        <div class="tab-content">
+          <mat-card>
+            <mat-card-content>
+              <div class="overview-grid">
+                <div><strong>Policy</strong><br />{{ c.policyNumber || '—' }}</div>
+                <div><strong>Client</strong><br />{{ c.clientName || '—' }}</div>
+                <div>
+                  <strong>Loss date</strong><br />{{
+                    c.lossDate ? (c.lossDate | date: 'medium') : '—'
+                  }}
+                </div>
+                <div><strong>Cause</strong><br />{{ c.causeOfLossCode || '—' }}</div>
+                <div><strong>Location</strong><br />{{ c.lossLocation || '—' }}</div>
+              </div>
+              <p class="loss-desc"><strong>Description:</strong> {{ c.lossDescription || '—' }}</p>
+
+              @if (c.validationIssues.length) {
+                <h3>Validation issues</h3>
+                <ul>
+                  @for (issue of c.validationIssues; track issue.code) {
+                    <li [class.critical]="issue.severity === 'Critical'">
+                      {{ issue.message }} ({{ issue.severity }})
+                    </li>
+                  }
+                </ul>
+              }
+
+              <h3>Change status</h3>
+              <form [formGroup]="statusForm" class="status-form" (ngSubmit)="transitionStatus()">
+                <mat-form-field appearance="outline">
+                  <mat-label>Target status</mat-label>
+                  <mat-select formControlName="targetStatus">
+                    @for (s of allowedTransitions; track s) {
+                      <mat-option [value]="s">{{ s }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Reason</mat-label>
+                  <input matInput formControlName="reason" />
+                </mat-form-field>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="submit"
+                  [disabled]="statusForm.invalid || !allowedTransitions.length"
+                >
+                  Update status
+                </button>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Parties">
+        <div class="tab-content">
+          <table mat-table [dataSource]="c.parties" class="full-width">
+            <ng-container matColumnDef="displayName">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let row">{{ row.displayName }}</td>
+            </ng-container>
+            <ng-container matColumnDef="partyRole">
+              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <td mat-cell *matCellDef="let row">{{ row.partyRole }}</td>
+            </ng-container>
+            <ng-container matColumnDef="partyType">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let row">{{ row.partyType }}</td>
+            </ng-container>
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <td mat-cell *matCellDef="let row">{{ row.email || '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="phone">
+              <th mat-header-cell *matHeaderCellDef>Phone</th>
+              <td mat-cell *matCellDef="let row">{{ row.phone || '—' }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="partyColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: partyColumns"></tr>
+          </table>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Reserves">
+        <div class="tab-content">
+          @for (reserve of c.reserves; track reserve.componentId) {
+            <mat-card class="reserve-card">
+              <mat-card-header>
+                <mat-card-title>{{ reserve.component }}</mat-card-title>
+                <mat-card-subtitle>
+                  Current: {{ reserve.currentAmount | currency }} | Pending:
+                  {{ reserve.pendingAmount | currency }}
+                </mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                @for (tx of reserve.transactions; track tx.id) {
+                  <div class="tx-row">
+                    <span>{{ tx.transactionType }} — {{ tx.amount | currency }}</span>
+                    <span>{{ tx.approvalStatus }} / {{ tx.postingStatus }}</span>
+                    <span>{{ tx.changeReason }}</span>
+                    @if (
+                      tx.approvalStatus === 'PendingApproval' && auth.canApproveReserves()
+                    ) {
+                      <button mat-raised-button color="primary" (click)="approveReserve(tx)">
+                        Approve
+                      </button>
+                      <mat-form-field appearance="outline" class="reject-field">
+                        <mat-label>Rejection reason</mat-label>
+                        <input matInput [(ngModel)]="rejectReason" [ngModelOptions]="{ standalone: true }" />
+                      </mat-form-field>
+                      <button mat-stroked-button color="warn" (click)="rejectReserve(tx)">
+                        Reject
+                      </button>
+                    }
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+          }
+
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>New reserve transaction</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <form [formGroup]="reserveForm" class="status-form" (ngSubmit)="submitReserve()">
+                <mat-form-field appearance="outline">
+                  <mat-label>Component</mat-label>
+                  <mat-select formControlName="component">
+                    <mat-option value="Indemnity">Indemnity</mat-option>
+                    <mat-option value="Expense">Expense</mat-option>
+                    <mat-option value="ALAE">ALAE</mat-option>
+                    <mat-option value="SubrogationRecoverable">Subrogation</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Amount</mat-label>
+                  <input matInput type="number" formControlName="amount" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Reason</mat-label>
+                  <input matInput formControlName="changeReason" />
+                </mat-form-field>
+                <button mat-raised-button color="primary" type="submit" [disabled]="reserveForm.invalid">
+                  Submit reserve
+                </button>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Documents">
+        <div class="tab-content">
+          <table mat-table [dataSource]="c.documents" class="full-width">
+            <ng-container matColumnDef="documentName">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let row">{{ row.documentName }}</td>
+            </ng-container>
+            <ng-container matColumnDef="documentType">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let row">{{ row.documentType }}</td>
+            </ng-container>
+            <ng-container matColumnDef="uploadedAt">
+              <th mat-header-cell *matHeaderCellDef>Uploaded</th>
+              <td mat-cell *matCellDef="let row">{{ row.uploadedAt | date: 'medium' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="fileSizeBytes">
+              <th mat-header-cell *matHeaderCellDef>Size</th>
+              <td mat-cell *matCellDef="let row">{{ formatBytes(row.fileSizeBytes) }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="documentColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: documentColumns"></tr>
+          </table>
+          @if (!c.documents.length) {
+            <p class="empty-msg">No documents attached.</p>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Audit">
+        <div class="tab-content">
+          <table mat-table [dataSource]="auditLogs()" class="full-width">
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef>When</th>
+              <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'medium' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="eventType">
+              <th mat-header-cell *matHeaderCellDef>Event</th>
+              <td mat-cell *matCellDef="let row">{{ row.eventType }}</td>
+            </ng-container>
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Description</th>
+              <td mat-cell *matCellDef="let row">{{ row.description }}</td>
+            </ng-container>
+            <ng-container matColumnDef="oldValue">
+              <th mat-header-cell *matHeaderCellDef>Old</th>
+              <td mat-cell *matCellDef="let row">{{ row.oldValue || '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="newValue">
+              <th mat-header-cell *matHeaderCellDef>New</th>
+              <td mat-cell *matCellDef="let row">{{ row.newValue || '—' }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="auditColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: auditColumns"></tr>
+          </table>
+          <mat-paginator
+            [length]="auditTotal"
+            [pageSize]="auditPageSize"
+            [pageIndex]="auditPageIndex"
+            [pageSizeOptions]="[10, 20, 50]"
+            (page)="onAuditPage($event)"
+          >
+          </mat-paginator>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

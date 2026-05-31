@@ -1,0 +1,53 @@
+.detail-header {
+  margin-bottom: 16px;
+
+  h1 {
+    display: inline-block;
+    margin: 8px 16px 8px 0;
+  }
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.loss-desc {
+  margin-top: 16px;
+}
+
+.status-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.reserve-card {
+  margin-bottom: 16px;
+}
+
+.tx-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.reject-field {
+  min-width: 200px;
+}
+
+.empty-msg {
+  color: #757575;
+  padding: 16px;
+}
+
+.critical {
+  color: #c62828;
+}

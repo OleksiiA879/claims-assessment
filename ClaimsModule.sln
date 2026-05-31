@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2020DE9B-9BAD-4737-9E60-17E1C38CA6F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClaimsModule.Domain", "src\ClaimsModule.Domain\ClaimsModule.Domain.csproj", "{A5FACCB5-41E6-4BA7-B076-C27A11E94811}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClaimsModule.Application", "src\ClaimsModule.Application\ClaimsModule.Application.csproj", "{C3A39F01-1E8A-4B51-B131-73522FB67729}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClaimsModule.Persistence", "src\ClaimsModule.Persistence\ClaimsModule.Persistence.csproj", "{E3D753C6-DB42-4D2A-947B-41A92EB4C920}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClaimsModule.Infrastructure", "src\ClaimsModule.Infrastructure\ClaimsModule.Infrastructure.csproj", "{17100F6F-0113-44B8-ADC0-5EA5D42BF89D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClaimsModule.API", "src\ClaimsModule.API\ClaimsModule.API.csproj", "{649051C6-92F7-482B-99DF-469BF1D6AF0D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A5FACCB5-41E6-4BA7-B076-C27A11E94811}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5FACCB5-41E6-4BA7-B076-C27A11E94811}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5FACCB5-41E6-4BA7-B076-C27A11E94811}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5FACCB5-41E6-4BA7-B076-C27A11E94811}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3A39F01-1E8A-4B51-B131-73522FB67729}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3A39F01-1E8A-4B51-B131-73522FB67729}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3A39F01-1E8A-4B51-B131-73522FB67729}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3A39F01-1E8A-4B51-B131-73522FB67729}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3D753C6-DB42-4D2A-947B-41A92EB4C920}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3D753C6-DB42-4D2A-947B-41A92EB4C920}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3D753C6-DB42-4D2A-947B-41A92EB4C920}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3D753C6-DB42-4D2A-947B-41A92EB4C920}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17100F6F-0113-44B8-ADC0-5EA5D42BF89D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17100F6F-0113-44B8-ADC0-5EA5D42BF89D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17100F6F-0113-44B8-ADC0-5EA5D42BF89D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17100F6F-0113-44B8-ADC0-5EA5D42BF89D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{649051C6-92F7-482B-99DF-469BF1D6AF0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{649051C6-92F7-482B-99DF-469BF1D6AF0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{649051C6-92F7-482B-99DF-469BF1D6AF0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{649051C6-92F7-482B-99DF-469BF1D6AF0D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A5FACCB5-41E6-4BA7-B076-C27A11E94811} = {2020DE9B-9BAD-4737-9E60-17E1C38CA6F8}
+		{C3A39F01-1E8A-4B51-B131-73522FB67729} = {2020DE9B-9BAD-4737-9E60-17E1C38CA6F8}
+		{E3D753C6-DB42-4D2A-947B-41A92EB4C920} = {2020DE9B-9BAD-4737-9E60-17E1C38CA6F8}
+		{17100F6F-0113-44B8-ADC0-5EA5D42BF89D} = {2020DE9B-9BAD-4737-9E60-17E1C38CA6F8}
+		{649051C6-92F7-482B-99DF-469BF1D6AF0D} = {2020DE9B-9BAD-4737-9E60-17E1C38CA6F8}
+	EndGlobalSection
+EndGlobal

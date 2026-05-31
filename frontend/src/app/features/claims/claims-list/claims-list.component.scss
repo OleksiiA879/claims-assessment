@@ -1,0 +1,19 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.claims-table {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+mat-paginator {
+  background: transparent;
+}

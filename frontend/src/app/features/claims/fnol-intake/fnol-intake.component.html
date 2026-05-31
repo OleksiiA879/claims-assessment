@@ -1,0 +1,194 @@
+<div class="page-container">
+  <h1>Log New Claim (FNOL)</h1>
+
+  <mat-stepper linear #stepper>
+    <mat-step [stepControl]="step1Form" label="Loss details">
+      <form [formGroup]="step1Form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Search policy</mat-label>
+          <input matInput formControlName="policySearch" [matAutocomplete]="policyAuto" />
+          <mat-autocomplete
+            #policyAuto="matAutocomplete"
+            (optionSelected)="selectPolicy($any($event.option.value))"
+          >
+            @for (p of policyResults; track p.policyId) {
+              <mat-option [value]="p">{{ p.policyNumber }} — {{ p.clientName }}</mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Loss date</mat-label>
+          <input matInput [matDatepicker]="lossPicker" formControlName="lossDate" required />
+          <mat-datepicker-toggle matIconSuffix [for]="lossPicker"></mat-datepicker-toggle>
+          <mat-datepicker #lossPicker></mat-datepicker>
+          @if (step1Form.get('lossDate')?.hasError('required') && step1Form.get('lossDate')?.touched) {
+            <mat-error>Loss date is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Cause of loss</mat-label>
+          <mat-select formControlName="causeOfLossCode" required>
+            @for (c of causeCodes; track c.code) {
+              <mat-option [value]="c.code">{{ c.code }} — {{ c.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Loss description</mat-label>
+          <textarea matInput formControlName="lossDescription" rows="4" required></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Loss location</mat-label>
+          <input matInput formControlName="lossLocation" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Estimated loss amount</mat-label>
+          <input matInput type="number" formControlName="estimatedLossAmount" />
+        </mat-form-field>
+
+        <div class="step-actions">
+          <button mat-raised-button color="primary" matStepperNext [disabled]="step1Form.invalid">
+            Next
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <mat-step [stepControl]="step2Form" label="Parties">
+      <form [formGroup]="step2Form">
+        <div formArrayName="parties">
+          @for (party of parties.controls; track $index; let i = $index) {
+            <div [formGroupName]="i" class="party-block">
+              <h3>Party {{ i + 1 }}</h3>
+              <div class="row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Role</mat-label>
+                  <mat-select formControlName="partyRole">
+                    <mat-option value="Claimant">Claimant</mat-option>
+                    <mat-option value="Insured">Insured</mat-option>
+                    <mat-option value="ThirdParty">Third Party</mat-option>
+                    <mat-option value="Witness">Witness</mat-option>
+                    <mat-option value="Attorney">Attorney</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Type</mat-label>
+                  <mat-select formControlName="partyType">
+                    <mat-option value="Person">Person</mat-option>
+                    <mat-option value="Company">Company</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+              @if (party.get('partyType')?.value === 'Person') {
+                <div class="row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>First name</mat-label>
+                    <input matInput formControlName="firstName" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Last name</mat-label>
+                    <input matInput formControlName="lastName" />
+                  </mat-form-field>
+                </div>
+              } @else {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Company name</mat-label>
+                  <input matInput formControlName="companyName" />
+                </mat-form-field>
+              }
+              <div class="row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Email</mat-label>
+                  <input matInput formControlName="email" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Phone</mat-label>
+                  <input matInput formControlName="phone" />
+                </mat-form-field>
+              </div>
+              @if (parties.length > 1) {
+                <button mat-stroked-button type="button" (click)="removeParty(i)">Remove</button>
+              }
+            </div>
+          }
+        </div>
+        <button mat-stroked-button type="button" (click)="addParty()">Add party</button>
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" matStepperNext [disabled]="step2Form.invalid">
+            Next
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <mat-step [stepControl]="step3Form" label="Risk & reserve">
+      <form [formGroup]="step3Form">
+        <div formArrayName="riskObjects">
+          @for (risk of riskObjects.controls; track $index; let i = $index) {
+            <div [formGroupName]="i" class="party-block">
+              <h3>Risk object {{ i + 1 }}</h3>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Asset type</mat-label>
+                <input matInput formControlName="assetType" required />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Description</mat-label>
+                <input matInput formControlName="assetDescription" required />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Damage description</mat-label>
+                <textarea matInput formControlName="damageDescription" rows="2"></textarea>
+              </mat-form-field>
+              @if (riskObjects.length > 1) {
+                <button mat-stroked-button type="button" (click)="removeRiskObject(i)">Remove</button>
+              }
+            </div>
+          }
+        </div>
+        <button mat-stroked-button type="button" (click)="addRiskObject()">Add risk object</button>
+
+        <h3>Initial reserve (optional)</h3>
+        <mat-form-field appearance="outline">
+          <mat-label>Include initial reserve</mat-label>
+          <mat-select formControlName="includeReserve">
+            <mat-option [value]="false">No</mat-option>
+            <mat-option [value]="true">Yes</mat-option>
+          </mat-select>
+        </mat-form-field>
+        @if (step3Form.get('includeReserve')?.value) {
+          <div class="row">
+            <mat-form-field appearance="outline">
+              <mat-label>Component</mat-label>
+              <mat-select formControlName="reserveComponent">
+                <mat-option value="Indemnity">Indemnity</mat-option>
+                <mat-option value="Expense">Expense</mat-option>
+                <mat-option value="ALAE">ALAE</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Amount</mat-label>
+              <input matInput type="number" formControlName="reserveAmount" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Reason</mat-label>
+              <input matInput formControlName="reserveReason" />
+            </mat-form-field>
+          </div>
+        }
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" (click)="submit()" [disabled]="step3Form.invalid">
+            Submit claim
+          </button>
+        </div>
+      </form>
+    </mat-step>
+  </mat-stepper>
+</div>
