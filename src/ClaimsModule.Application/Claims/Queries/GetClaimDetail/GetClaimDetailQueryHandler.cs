@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClaimsModule.Application.Claims.Queries.GetClaimDetail;
 
-public class GetClaimDetailQueryHandler(IApplicationDbContext context)
+public class GetClaimDetailQueryHandler(IApplicationDbContext context, IStorageService storage)
     : IRequestHandler<GetClaimDetailQuery, ClaimDetailDto>
 {
     public async Task<ClaimDetailDto> Handle(GetClaimDetailQuery request, CancellationToken cancellationToken)
@@ -42,6 +42,16 @@ public class GetClaimDetailQueryHandler(IApplicationDbContext context)
                     .ToList()))
             .ToList();
 
+        var documents = new List<DocumentDto>(claim.Documents.Count);
+        foreach (var document in claim.Documents)
+        {
+            var url = await storage.GetDownloadUrlAsync(document.BlobPath, TimeSpan.FromHours(1), cancellationToken);
+            if (url.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+                url = $"/api/claims/{claim.Id}/documents/{document.Id}/download";
+            documents.Add(new DocumentDto(document.Id, document.DocumentName, document.DocumentType,
+                document.UploadedAt, document.FileSizeBytes, url));
+        }
+
         return new ClaimDetailDto(
             claim.Id,
             claim.ClaimNumber,
@@ -58,7 +68,7 @@ public class GetClaimDetailQueryHandler(IApplicationDbContext context)
             claim.Parties.Select(p => new PartyDto(p.Id, p.PartyRole, p.PartyType, p.DisplayName, p.Email, p.Phone, p.IsActive)).ToList(),
             claim.RiskObjects.Select(r => new RiskObjectDto(r.Id, r.AssetType, r.AssetDescription, r.DamageDescription, r.IsPrimary)).ToList(),
             reserves,
-            claim.Documents.Select(d => new DocumentDto(d.Id, d.DocumentName, d.DocumentType, d.UploadedAt, d.FileSizeBytes, null)).ToList(),
+            documents,
             claim.ValidationIssues.Where(v => v.IsActive).Select(v => new ValidationIssueDto(v.Code, v.Message, v.Severity, v.IsAcknowledged)).ToList());
     }
 }

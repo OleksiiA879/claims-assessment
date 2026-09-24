@@ -1,4 +1,6 @@
 using ClaimsModule.Application.Claims.Commands.CreateClaim;
+using ClaimsModule.Application.Claims.Commands.AddClaimParty;
+using ClaimsModule.Application.Claims.Commands.DeleteClaimParty;
 using ClaimsModule.Application.Claims.Commands.TransitionClaimStatus;
 using ClaimsModule.Application.Claims.DTOs;
 using ClaimsModule.Application.Claims.Queries.GetClaimAudit;
@@ -52,6 +54,31 @@ public class ClaimsController(IMediator mediator) : ControllerBase
     [HttpGet("{id:guid}/audit")]
     public async Task<ActionResult<PaginatedList<AuditLogDto>>> Audit(Guid id, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default) =>
         Ok(await mediator.Send(new GetClaimAuditQuery(id, pageNumber, pageSize), ct));
+
+    [HttpPost("{id:guid}/parties")]
+    [ProducesResponseType(typeof(PartyDto), StatusCodes.Status201Created)]
+    public async Task<IActionResult> AddParty(Guid id, [FromBody] AddPartyRequest body, CancellationToken ct)
+    {
+        var party = await mediator.Send(new AddClaimPartyCommand(
+            id, body.PartyRole, body.PartyType, body.FirstName, body.LastName,
+            body.CompanyName, body.Email, body.Phone), ct);
+        return CreatedAtAction(nameof(GetById), new { id }, party);
+    }
+
+    [HttpDelete("{id:guid}/parties/{partyId:guid}")]
+    public async Task<IActionResult> DeleteParty(Guid id, Guid partyId, CancellationToken ct)
+    {
+        await mediator.Send(new DeleteClaimPartyCommand(id, partyId), ct);
+        return NoContent();
+    }
 }
 
 public record TransitionStatusRequest(ClaimStatus TargetStatus, string? Reason);
+public record AddPartyRequest(
+    PartyRole PartyRole,
+    PartyType PartyType,
+    string? FirstName,
+    string? LastName,
+    string? CompanyName,
+    string? Email,
+    string? Phone);

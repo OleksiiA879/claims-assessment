@@ -22,6 +22,13 @@ public class LocalFileSystemStorageService(IConfiguration configuration) : IStor
         return Task.FromResult($"file:///{fullPath.Replace('\\', '/')}");
     }
 
+    public Task<Stream> OpenReadAsync(string blobPath, CancellationToken cancellationToken = default)
+    {
+        var fullPath = Path.Combine(BasePath, blobPath.Replace('/', Path.DirectorySeparatorChar));
+        Stream stream = File.OpenRead(fullPath);
+        return Task.FromResult(stream);
+    }
+
     public Task DeleteAsync(string blobPath, CancellationToken cancellationToken = default)
     {
         var fullPath = Path.Combine(BasePath, blobPath.Replace('/', Path.DirectorySeparatorChar));

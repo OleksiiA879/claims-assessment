@@ -57,8 +57,8 @@ public class CreateReserveCommandHandler(
         if (ReserveAuthorityService.ExceedsAggregateCap(
                 claim.GetApprovedReserveTotal(), request.Amount, claim.ManagerOverrideForReserves))
         {
-            await auditLog.LogAsync(claim.Id, "VALIDATION_ISSUE_ADDED",
-                "Total reserves will exceed $10,000,000. Manager override required.", cancellationToken: cancellationToken);
+            throw new ValidationException("Amount",
+                "Total approved reserves cannot exceed $10,000,000 without a manager override.");
         }
 
         var history = new ReserveHistory
@@ -84,8 +84,6 @@ public class CreateReserveCommandHandler(
         {
             history.ApprovedAt = DateTimeOffset.UtcNow;
             history.ApprovedByUserId = currentUser.UserId;
-            component.CurrentAmount = newBalance;
-            glScheduler.Enqueue(history.Id, claim.Id, history.IdempotencyKey);
             await auditLog.LogAsync(claim.Id, "RESERVE_AUTO_APPROVED",
                 $"Reserve auto-approved: {request.Amount:C} ({request.Component}).",
                 relatedEntityId: history.Id, relatedEntityType: nameof(ReserveHistory),
@@ -101,6 +99,8 @@ public class CreateReserveCommandHandler(
 
         component.History.Add(history);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (approvalStatus == ReserveApprovalStatus.AutoApproved)
+            glScheduler.Enqueue(history.Id, claim.Id, history.IdempotencyKey);
 
         return new CreateReserveResult(history.Id, component.Id, approvalStatus, history.IdempotencyKey);
     }

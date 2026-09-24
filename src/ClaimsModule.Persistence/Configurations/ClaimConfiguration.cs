@@ -1,3 +1,4 @@
+using ClaimsModule.Domain.Constants;
 using ClaimsModule.Domain.Entities;
 using ClaimsModule.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
         builder.Property(x => x.ClientName).HasMaxLength(255);
         builder.Property(x => x.RowVer).IsRowVersion();
         builder.HasIndex(x => new { x.OrganisationId, x.ClaimNumber }).IsUnique();
-        builder.HasQueryFilter(x => !x.IsDeleted);
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
         builder.HasOne(x => x.LossEvent).WithOne(x => x.Claim).HasForeignKey<LossEvent>(x => x.ClaimId);
         builder.HasOne(x => x.Policy).WithMany().HasForeignKey(x => x.PolicyId).OnDelete(DeleteBehavior.SetNull);
     }

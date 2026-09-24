@@ -1,4 +1,3 @@
-using AutoMapper;
 using ClaimsModule.Application.Claims.DTOs;
 using ClaimsModule.Application.Claims.Queries.GetClaimDetail;
 using ClaimsModule.Application.Common.Interfaces;
@@ -27,73 +26,75 @@ public class CreateClaimCommandHandler(
                 .FirstOrDefaultAsync(p => p.Id == request.PolicyId.Value, cancellationToken);
         }
 
-        var claimNumber = await claimNumberGenerator.GenerateNextAsync(currentUser.OrganisationId, cancellationToken);
-
-        var claim = Domain.Entities.Claim.Create(
-            currentUser.OrganisationId,
-            claimNumber,
-            request.PolicyId,
-            policy?.PolicyNumber,
-            policy?.ClientName,
-            currentUser.UserId);
-
-        claim.LossEvent = new LossEvent
+        Domain.Entities.Claim? claim = null;
+        await unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
-            Id = Guid.NewGuid(),
-            OrganisationId = currentUser.OrganisationId,
-            ClaimId = claim.Id,
-            LossDate = request.LossDate,
-            LossDescription = request.LossDescription,
-            LossLocation = request.LossLocation,
-            CauseOfLossCode = request.CauseOfLossCode,
-            EstimatedLossAmount = request.EstimatedLossAmount,
-            ReportDate = DateTimeOffset.UtcNow,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UserCreated = currentUser.UserId
-        };
+            var claimNumber = await claimNumberGenerator.GenerateNextAsync(currentUser.OrganisationId, ct);
+            claim = Domain.Entities.Claim.Create(
+                currentUser.OrganisationId,
+                claimNumber,
+                request.PolicyId,
+                policy?.PolicyNumber,
+                policy?.ClientName,
+                currentUser.UserId);
 
-        claim.Parties = request.Parties.Select(p => new ClaimParty
-        {
-            Id = Guid.NewGuid(),
-            OrganisationId = currentUser.OrganisationId,
-            ClaimId = claim.Id,
-            PartyRole = p.PartyRole,
-            PartyType = p.PartyType,
-            FirstName = p.FirstName,
-            LastName = p.LastName,
-            CompanyName = p.CompanyName,
-            Email = p.Email,
-            Phone = p.Phone,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UserCreated = currentUser.UserId
-        }).ToList();
+            claim.LossEvent = new LossEvent
+            {
+                Id = Guid.NewGuid(),
+                OrganisationId = currentUser.OrganisationId,
+                ClaimId = claim.Id,
+                LossDate = request.LossDate,
+                LossDescription = request.LossDescription,
+                LossLocation = request.LossLocation,
+                CauseOfLossCode = request.CauseOfLossCode,
+                EstimatedLossAmount = request.EstimatedLossAmount,
+                ReportDate = DateTimeOffset.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow,
+                UserCreated = currentUser.UserId
+            };
 
-        claim.RiskObjects = request.RiskObjects.Select(r => new ClaimRiskObject
-        {
-            Id = Guid.NewGuid(),
-            OrganisationId = currentUser.OrganisationId,
-            ClaimId = claim.Id,
-            AssetType = r.AssetType,
-            AssetDescription = r.AssetDescription,
-            DamageDescription = r.DamageDescription,
-            AssetReference = r.AssetReference,
-            IsPrimary = r.IsPrimary,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UserCreated = currentUser.UserId
-        }).ToList();
+            claim.Parties = request.Parties.Select(p => new ClaimParty
+            {
+                Id = Guid.NewGuid(),
+                OrganisationId = currentUser.OrganisationId,
+                ClaimId = claim.Id,
+                PartyRole = p.PartyRole,
+                PartyType = p.PartyType,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                CompanyName = p.CompanyName,
+                Email = p.Email,
+                Phone = p.Phone,
+                CreatedAt = DateTimeOffset.UtcNow,
+                UserCreated = currentUser.UserId
+            }).ToList();
 
-        await ApplyValidationIssuesAsync(claim, policy, request, cancellationToken);
+            claim.RiskObjects = request.RiskObjects.Select(r => new ClaimRiskObject
+            {
+                Id = Guid.NewGuid(),
+                OrganisationId = currentUser.OrganisationId,
+                ClaimId = claim.Id,
+                AssetType = r.AssetType,
+                AssetDescription = r.AssetDescription,
+                DamageDescription = r.DamageDescription,
+                AssetReference = r.AssetReference,
+                IsPrimary = r.IsPrimary,
+                CreatedAt = DateTimeOffset.UtcNow,
+                UserCreated = currentUser.UserId
+            }).ToList();
 
-        context.Claims.Add(claim);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+            await ApplyValidationIssuesAsync(claim, policy, request, ct);
+            context.Claims.Add(claim);
+            await unitOfWork.SaveChangesAsync(ct);
+        }, cancellationToken);
 
-        if (request.InitialReserve is { } reserve && claim.PolicyId.HasValue)
+        if (request.InitialReserve is { } reserve && claim!.PolicyId.HasValue)
         {
             await mediator.Send(new Reserves.Commands.CreateReserve.CreateReserveCommand(
                 claim.Id, reserve.Component, reserve.Amount, reserve.ChangeReason, ReserveTransactionType.Add), cancellationToken);
         }
 
-        return await mediator.Send(new GetClaimDetailQuery(claim.Id), cancellationToken);
+        return await mediator.Send(new GetClaimDetailQuery(claim!.Id), cancellationToken);
     }
 
     private async Task ApplyValidationIssuesAsync(

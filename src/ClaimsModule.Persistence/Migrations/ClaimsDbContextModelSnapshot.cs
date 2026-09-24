@@ -26,13 +26,23 @@ namespace ClaimsModule.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
@@ -49,6 +59,15 @@ namespace ClaimsModule.Persistence.Migrations
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UserCreated")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UserModified")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
@@ -61,7 +80,9 @@ namespace ClaimsModule.Persistence.Migrations
                         {
                             Id = new Guid("30000001-0001-0001-0001-000000000001"),
                             Code = "COL-FIRE",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "Fire",
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PerilCategory = "Property",
@@ -71,7 +92,9 @@ namespace ClaimsModule.Persistence.Migrations
                         {
                             Id = new Guid("30000001-0001-0001-0001-000000000002"),
                             Code = "COL-FLOOD",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "Flood",
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PerilCategory = "Weather",
@@ -81,7 +104,9 @@ namespace ClaimsModule.Persistence.Migrations
                         {
                             Id = new Guid("30000001-0001-0001-0001-000000000003"),
                             Code = "COL-THEFT",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "Theft",
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PerilCategory = "Crime",
@@ -91,7 +116,9 @@ namespace ClaimsModule.Persistence.Migrations
                         {
                             Id = new Guid("30000001-0001-0001-0001-000000000004"),
                             Code = "COL-VEH-COL",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "Vehicle Collision",
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PerilCategory = "Auto",
@@ -101,7 +128,9 @@ namespace ClaimsModule.Persistence.Migrations
                         {
                             Id = new Guid("30000001-0001-0001-0001-000000000005"),
                             Code = "COL-VEH-COMP",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "Vehicle Comprehensive",
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PerilCategory = "Auto",
@@ -111,7 +140,9 @@ namespace ClaimsModule.Persistence.Migrations
                         {
                             Id = new Guid("30000001-0001-0001-0001-000000000006"),
                             Code = "COL-LIAB",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "Third Party Liability",
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PerilCategory = "Liability",
@@ -121,7 +152,9 @@ namespace ClaimsModule.Persistence.Migrations
                         {
                             Id = new Guid("30000001-0001-0001-0001-000000000007"),
                             Code = "COL-EQUIP",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "Equipment Breakdown",
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PerilCategory = "Equipment",
@@ -131,7 +164,9 @@ namespace ClaimsModule.Persistence.Migrations
                         {
                             Id = new Guid("30000001-0001-0001-0001-000000000008"),
                             Code = "COL-WIND",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "Wind / Storm",
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PerilCategory = "Weather",
@@ -141,7 +176,9 @@ namespace ClaimsModule.Persistence.Migrations
                         {
                             Id = new Guid("30000001-0001-0001-0001-000000000009"),
                             Code = "COL-INJURY",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "Bodily Injury",
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PerilCategory = "Liability",
@@ -151,7 +188,9 @@ namespace ClaimsModule.Persistence.Migrations
                         {
                             Id = new Guid("30000001-0001-0001-0001-00000000000a"),
                             Code = "COL-OTHER",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "Other / Unknown",
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PerilCategory = "General",
@@ -264,6 +303,9 @@ namespace ClaimsModule.Persistence.Migrations
                     b.Property<Guid?>("CreatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -272,6 +314,9 @@ namespace ClaimsModule.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("NewValue")
                         .HasColumnType("nvarchar(max)");
@@ -288,6 +333,15 @@ namespace ClaimsModule.Persistence.Migrations
                     b.Property<string>("RelatedEntityType")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UserCreated")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UserModified")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClaimId");
@@ -299,7 +353,8 @@ namespace ClaimsModule.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<string>("BlobPath")
                         .IsRequired()
@@ -368,6 +423,12 @@ namespace ClaimsModule.Persistence.Migrations
                     b.Property<int>("Year")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<int>("LastSequence")
                         .HasColumnType("int");
 
@@ -386,7 +447,8 @@ namespace ClaimsModule.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<Guid>("ClaimId")
                         .HasColumnType("uniqueidentifier");
@@ -454,7 +516,8 @@ namespace ClaimsModule.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<Guid>("ClaimId")
                         .HasColumnType("uniqueidentifier");
@@ -466,10 +529,6 @@ namespace ClaimsModule.Persistence.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<decimal>("CurrentAmount")
-                        .HasPrecision(19, 4)
-                        .HasColumnType("decimal(19,4)");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("datetimeoffset");
@@ -513,7 +572,8 @@ namespace ClaimsModule.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<string>("AssetDescription")
                         .IsRequired()
@@ -567,12 +627,25 @@ namespace ClaimsModule.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("FromStatus")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("OrganisationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("RequiredPermission")
                         .HasColumnType("nvarchar(max)");
@@ -582,6 +655,15 @@ namespace ClaimsModule.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UserCreated")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UserModified")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.ToTable("ClaimStatusTransitions", (string)null);
@@ -590,74 +672,110 @@ namespace ClaimsModule.Persistence.Migrations
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-000000000001"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "Draft",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "Open"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-000000000002"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "Open",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "UnderInvestigation"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-000000000003"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "Open",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "PendingPayment"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-000000000004"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "Open",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "Closed"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-000000000005"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "Open",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "Withdrawn"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-000000000006"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "UnderInvestigation",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "Open"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-000000000007"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "UnderInvestigation",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "PendingPayment"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-000000000008"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "UnderInvestigation",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "Closed"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-000000000009"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "UnderInvestigation",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "Withdrawn"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-00000000000a"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "PendingPayment",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "Closed"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-00000000000b"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "Closed",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             RequiredPermission = "supervisor",
                             ToStatus = "Reopened"
                         },
                         new
                         {
                             Id = new Guid("50000001-0001-0001-0001-00000000000c"),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FromStatus = "Reopened",
+                            IsDeleted = false,
+                            OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             ToStatus = "Open"
                         });
                 });
@@ -666,7 +784,8 @@ namespace ClaimsModule.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<Guid>("ClaimId")
                         .HasColumnType("uniqueidentifier");
@@ -785,7 +904,8 @@ namespace ClaimsModule.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<string>("ClientName")
                         .IsRequired()
@@ -795,11 +915,20 @@ namespace ClaimsModule.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<DateOnly>("EffectiveDate")
                         .HasColumnType("date");
 
                     b.Property<DateOnly>("ExpirationDate")
                         .HasColumnType("date");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("OrganisationId")
                         .HasColumnType("uniqueidentifier");
@@ -811,6 +940,15 @@ namespace ClaimsModule.Persistence.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid?>("UserCreated")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UserModified")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -825,8 +963,10 @@ namespace ClaimsModule.Persistence.Migrations
                             Id = new Guid("40000001-0001-0001-0001-000000000001"),
                             ClientName = "Meridian Transport LLC",
                             CoverageTypes = "Vehicle,Cargo",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EffectiveDate = new DateOnly(2024, 1, 1),
                             ExpirationDate = new DateOnly(2026, 12, 31),
+                            IsDeleted = false,
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PolicyNumber = "POL-2024-001001",
                             Status = "Active"
@@ -836,8 +976,10 @@ namespace ClaimsModule.Persistence.Migrations
                             Id = new Guid("40000001-0001-0001-0001-000000000002"),
                             ClientName = "Harborview Properties Inc",
                             CoverageTypes = "Property,Liability",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EffectiveDate = new DateOnly(2024, 6, 1),
                             ExpirationDate = new DateOnly(2026, 5, 31),
+                            IsDeleted = false,
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PolicyNumber = "POL-2024-001002",
                             Status = "Active"
@@ -847,8 +989,10 @@ namespace ClaimsModule.Persistence.Migrations
                             Id = new Guid("40000001-0001-0001-0001-000000000003"),
                             ClientName = "Coastal Builders Group",
                             CoverageTypes = "Property,Equipment",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EffectiveDate = new DateOnly(2025, 3, 1),
                             ExpirationDate = new DateOnly(2027, 2, 28),
+                            IsDeleted = false,
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PolicyNumber = "POL-2025-002001",
                             Status = "Active"
@@ -858,8 +1002,10 @@ namespace ClaimsModule.Persistence.Migrations
                             Id = new Guid("40000001-0001-0001-0001-000000000004"),
                             ClientName = "Stanton Medical Group",
                             CoverageTypes = "Liability,Vehicle",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EffectiveDate = new DateOnly(2025, 1, 1),
                             ExpirationDate = new DateOnly(2026, 12, 31),
+                            IsDeleted = false,
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PolicyNumber = "POL-2025-002002",
                             Status = "Active"
@@ -869,8 +1015,10 @@ namespace ClaimsModule.Persistence.Migrations
                             Id = new Guid("40000001-0001-0001-0001-000000000005"),
                             ClientName = "Archived Corp",
                             CoverageTypes = "Property",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             EffectiveDate = new DateOnly(2020, 1, 1),
                             ExpirationDate = new DateOnly(2021, 12, 31),
+                            IsDeleted = false,
                             OrganisationId = new Guid("11111111-1111-1111-1111-111111111111"),
                             PolicyNumber = "POL-2023-000099",
                             Status = "Expired"
@@ -881,7 +1029,8 @@ namespace ClaimsModule.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(19, 4)

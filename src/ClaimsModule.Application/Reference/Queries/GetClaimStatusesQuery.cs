@@ -1,6 +1,5 @@
 using ClaimsModule.Application.Common.Interfaces;
 using ClaimsModule.Domain.Enums;
-using ClaimsModule.Domain.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,10 +14,13 @@ public class GetClaimStatusesQueryHandler(IApplicationDbContext context)
     public async Task<IReadOnlyList<ClaimStatusDto>> Handle(GetClaimStatusesQuery request, CancellationToken cancellationToken)
     {
         var statuses = Enum.GetValues<ClaimStatus>();
+        var transitions = await context.ClaimStatusTransitions
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
         return statuses
             .Select(s => new ClaimStatusDto(
                 s.ToString(),
-                ClaimStatusMachine.GetNextStatuses(s).Select(x => x.ToString()).ToList()))
+                transitions.Where(t => t.FromStatus == s).Select(t => t.ToStatus.ToString()).ToList()))
             .ToList();
     }
 }

@@ -1,57 +1,147 @@
-# Enterprise Claims Management System — Greenfield Vertical Slice
+# Enterprise Claims Management
 
-[![Build & Validation Pipeline](https://img.shields.io/badge/Build-.NET%209%20%7C%20Angular%2018-blueviolet?style=flat-square)](https://dotnet.microsoft.com/)
-[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%252B%20CQRS-brightgreen?style=flat-square)](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/)
+A working vertical slice of a multi-tenant claims platform. The solution combines a .NET 9 API, Angular 18 SPA, SQL Server persistence, Azure Blob-compatible document storage, and Hangfire background processing.
 
-A production-oriented greenfield implementation simulating an enterprise-grade Policy Administration System (PAS) Claims Module. Built with **.NET 9 / C# 13** backend architecture and an **Angular 18 Enterprise Core** frontend, deployed and running on Microsoft Azure.
+## Capabilities
 
----
+- FNOL intake with policy-date validation, claimant and risk-object capture, and optional initial reserve.
+- Claims list, detail, status transitions, audit history, parties, documents, and reserve management.
+- Append-only reserve history with automatic, supervisor, and manager authority tiers.
+- Idempotent GL posting and a 15-minute SLA monitor.
+- Simulated JWT login and role switching for Handler, Supervisor, and Manager.
+- OpenAPI/Swagger, RFC 7807 validation responses, EF Core migrations, Docker, Bicep, and GitHub Actions CI/CD.
 
-## 🚀 Key Functional Capabilities
-* **Automated FNOL Intake:** Multi-step reactive wizard processing multi-party data, linked assets, policy date-boundary evaluations, and atomic document lifecycle management.
-* **Distributed Processing Framework:** Resilient background operation workers executing idempotent General Ledger ledger simulations and SLA breach state machines.
+## Prerequisites
 
----
+- .NET SDK 9
+- Node.js 20.11+ or 22
+- Docker Desktop, or a reachable SQL Server 2022/Azure SQL instance
 
-## 🛠️ Technology Stack & Foundations
+## Run locally
 
-### Backend Core
-* **Runtime & Framework:** .NET 9 (C# 13 features: Primary Constructors, Collection Expressions)
-* **API Architecture:** Clean Architecture with CQRS via MediatR 12+
-* **Persistence Engine:** EF Core 9 (SQL Server 2022), Unit of Work (UoW) Pattern
-* **Business Validation:** Pipeline-level FluentValidation
-* **Background Jobs:** Hangfire (SQL Server Storage Engine)
-* **Document Services:** Azure Blob Storage with short-lived SAS URL distribution tokens
+The quickest path starts SQL Server and the complete application through Docker:
 
-### Frontend Architecture
-* **Framework:** Angular 18 (Signals-based state management, Lazy-loaded structures)
-* **Design Engine:** Angular Material Enterprise Layout tokens
-* **Form Ingress:** Advanced AbstractControl Reactive Form groups
-
----
-
-## 💻 Local Development Setup
-
-### 1. External Infrastructure Preparation
-Spin up a local containerized SQL Server instance:
 ```bash
-docker compose up -d
-2. Microservice ConfigurationModify configuration directives inside src/ClaimsModule.API/appsettings.json:JSON{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost,1433;Database=DiceusClaimsDb;User Id=sa;Password=YourSecurePassword123!;TrustServerCertificate=True;"
-  },
-  "Storage": {
-    "Provider": "LocalFileSystem", 
-    "FallbackPath": "wwwroot/uploads"
-  },
-  "TenantSettings": {
-    "DefaultOrganisationId": "8f3b9e21-4c1d-4a8a-9e22-3b4c5d6e7f8a"
-  }
-}
-3. Initialize Database & Reference DataMigrations automatically run on startup. To manually interact with tools via CLI:Bashdotnet ef database update --project src/ClaimsModule.Persistence --startup-project src/ClaimsModule.API
-Note: System applies immutable reference data seeding (Cause of Loss matrices, Policy simulations like POL-2024-001001) natively inside core migrations.4. Bootstrapping Runtime EnvironmentsBackend Engine Execution:Bashcd src/ClaimsModule.API
-dotnet run
-Interactive Swagger Playground initializes at: https://localhost:5001/swagger/index.htmlAngular UI Compilation:Bashcd frontend
-npm install
+docker compose up --build
+```
+
+Open:
+
+- Application: <http://localhost:5000>
+- Swagger: <http://localhost:5000/swagger>
+- Health check: <http://localhost:5000/health>
+- Hangfire dashboard (Development only): <http://localhost:5000/hangfire>
+
+The database is created and seeded by EF Core migrations when the API starts. The compose password is a local-only development credential.
+
+To run each application separately:
+
+```bash
+docker compose up -d sqlserver
+dotnet restore ClaimsModule.sln
+dotnet run --project src/ClaimsModule.API
+```
+
+In another terminal:
+
+```bash
+cd frontend
+npm ci
 npm start
-Active local client frame hosts at: http://localhost:4200🔐 Identity Simulation & RBAC GatingThe application implements a secure JWT bearer interceptor workflow simulation. Authenticate against the application stack via POST /api/auth/login using the reference accounts below to validate role-based UI gating:Security IdentityAssigned RBAC RoleTarget Capability VectorshandlerClaims HandlerAccess FNOL forms, modify metadata, settle reserves $\le \$10,000$.supervisorClaims SupervisorAll handler rights + process authority approvals $\le \$100,000$.managerClaims ManagerFull override permissions, unlock capital limits up to $\$10,000,000$.
+```
+
+The Angular development server uses `proxy.conf.json` to reach the API.
+
+## Reference users
+
+Call `POST /api/auth/login` with one of these usernames:
+
+| Username | Role | Reserve authority |
+|---|---|---|
+| `handler` | Handler | Automatic approval through $10,000 |
+| `supervisor` | Supervisor | Approval through $100,000 |
+| `manager` | Manager | Approval above $100,000 |
+
+The SPA role switcher performs this login and stores the returned development JWT. Self-approval remains prohibited.
+
+## Main API routes
+
+| Area | Routes |
+|---|---|
+| Claims | `GET/POST /api/claims`, `GET /api/claims/{id}`, `PUT /api/claims/{id}/status` |
+| Parties | `POST /api/claims/{id}/parties`, `DELETE /api/claims/{id}/parties/{partyId}` |
+| Reserves | `GET/POST /api/claims/{id}/reserves`, approve, reject, and retract routes |
+| Documents | `GET/POST /api/claims/{id}/documents`, authenticated download route |
+| Policies | `GET /api/policies/search`, `GET /api/policies/{id}/coverage` |
+| Reference | cause-of-loss and claim-status routes |
+
+Swagger contains the complete request and response contracts.
+
+## Configuration
+
+Settings can be supplied through `src/ClaimsModule.API/appsettings.json` or standard ASP.NET Core environment variables:
+
+| Setting | Purpose |
+|---|---|
+| `ConnectionStrings__DefaultConnection` | SQL Server/Azure SQL connection |
+| `Storage__Provider` | `LocalFileSystem` or `AzureBlob` |
+| `Storage__LocalPath` | Local document directory |
+| `Storage__Azure__ConnectionString` | Blob Storage connection |
+| `Storage__Azure__Container` | Private document container |
+| `Jwt__Key` | JWT signing key |
+
+Local files are served only through the authenticated API. Azure Blob downloads use one-hour, read-only SAS URLs.
+
+## Database migrations
+
+```bash
+dotnet tool install --global dotnet-ef --version 9.0.5
+dotnet ef database update \
+  --project src/ClaimsModule.Persistence \
+  --startup-project src/ClaimsModule.API
+```
+
+All schema and seed changes are represented by migrations. Monetary values use `decimal(19,4)`, timestamps use SQL Server `datetimeoffset`, aggregate roots use `rowversion`, and GUID keys use `NEWSEQUENTIALID()` defaults.
+
+## Azure deployment
+
+`infra/main.bicep` provisions:
+
+- Linux Azure App Service for the API and compiled Angular SPA
+- Azure SQL logical server and database
+- Private Azure Blob Storage container
+
+Create a resource group, then deploy manually:
+
+```bash
+az group create --name claims-production --location westeurope
+az deployment group create \
+  --resource-group claims-production \
+  --template-file infra/main.bicep \
+  --parameters prefix=claimsprod \
+               sqlAdministratorLogin=<login> \
+               sqlAdministratorPassword=<password> \
+               jwtSigningKey=<32-plus-character-secret>
+```
+
+For automated deployment, configure the GitHub `production` environment with:
+
+| Type | Name |
+|---|---|
+| Secret | `AZURE_CLIENT_ID` |
+| Secret | `AZURE_TENANT_ID` |
+| Secret | `AZURE_SUBSCRIPTION_ID` |
+| Secret | `SQL_ADMIN_LOGIN` |
+| Secret | `SQL_ADMIN_PASSWORD` |
+| Secret | `JWT_SIGNING_KEY` |
+| Variable | `AZURE_RESOURCE_GROUP` |
+| Variable | `AZURE_RESOURCE_PREFIX` |
+| Variable | `AZURE_DEPLOY_ENABLED` (`true` enables deployment) |
+
+The workflow builds both applications, embeds the Angular output in the API artifact, provisions Azure resources, deploys App Service, and lets the API apply migrations during startup.
+
+## Architecture and AI artifacts
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) documents boundaries, business rules, and trade-offs.
+- [AI-WORKFLOW.md](AI-WORKFLOW.md) documents the AI-assisted engineering process.
+- [AI-INTERACTION-HISTORY.md](AI-INTERACTION-HISTORY.md) records the auditable interaction summary without fabricated transcripts.

@@ -4,9 +4,11 @@ on:
   workflow_dispatch:
   push:
     branches: [main, master]
+  pull_request:
+    branches: [main, master]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +22,7 @@ jobs:
         run: |
           dotnet restore ClaimsModule.sln
           dotnet build ClaimsModule.sln -c Release --no-restore
+          dotnet test ClaimsModule.sln -c Release --no-build
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -32,8 +35,14 @@ jobs:
           npm ci
           npm run build -- --configuration production
 
+      - name: Validate Azure infrastructure
+        run: az bicep build --file infra/main.bicep --stdout > /dev/null
+
       - name: Publish API artifact
-        run: dotnet publish src/ClaimsModule.API/ClaimsModule.API.csproj -c Release -o ./publish/api
+        run: |
+          mkdir -p src/ClaimsModule.API/wwwroot
+          cp -R frontend/dist/claims-frontend/browser/. src/ClaimsModule.API/wwwroot/
+          dotnet publish src/ClaimsModule.API/ClaimsModule.API.csproj -c Release --no-build -o ./publish/api
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -41,7 +50,46 @@ jobs:
           name: claims-module
           path: |
             publish/api
-            frontend/dist
 
-      # Configure Azure credentials and deploy steps when secrets are available:
-      # AZURE_WEBAPP_PUBLISH_PROFILE, SQL_CONNECTION_STRING, etc.
+  deploy:
+    if: github.event_name != 'pull_request' && vars.AZURE_DEPLOY_ENABLED == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: claims-module
+          path: publish/api
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Provision Azure resources
+        id: infrastructure
+        uses: azure/arm-deploy@v2
+        with:
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ vars.AZURE_RESOURCE_GROUP }}
+          template: infra/main.bicep
+          parameters: >-
+            prefix=${{ vars.AZURE_RESOURCE_PREFIX }}
+            sqlAdministratorLogin=${{ secrets.SQL_ADMIN_LOGIN }}
+            sqlAdministratorPassword=${{ secrets.SQL_ADMIN_PASSWORD }}
+            jwtSigningKey=${{ secrets.JWT_SIGNING_KEY }}
+          failOnStdErr: false
+
+      - name: Deploy application
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ steps.infrastructure.outputs.webAppName }}
+          package: publish/api

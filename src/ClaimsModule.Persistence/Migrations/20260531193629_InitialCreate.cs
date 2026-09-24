@@ -215,7 +215,6 @@ namespace ClaimsModule.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ClaimId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Component = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CurrentAmount = table.Column<decimal>(type: "decimal(19,4)", precision: 19, scale: 4, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     OrganisationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),

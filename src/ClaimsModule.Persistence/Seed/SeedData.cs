@@ -7,6 +7,8 @@ namespace ClaimsModule.Persistence.Seed;
 
 public static class SeedData
 {
+    private static readonly DateTimeOffset SeededAt = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
     public static void Apply(ModelBuilder modelBuilder)
     {
         var orgId = SeedConstants.DefaultOrganisationId;
@@ -46,11 +48,11 @@ public static class SeedData
     }
 
     private static CauseOfLossCode Cause(Guid orgId, Guid id, string code, string name, string category, int sort) =>
-        new() { Id = id, OrganisationId = orgId, Code = code, Name = name, PerilCategory = category, IsActive = true, SortOrder = sort };
+        new() { Id = id, OrganisationId = orgId, Code = code, Name = name, PerilCategory = category, IsActive = true, SortOrder = sort, CreatedAt = SeededAt };
 
     private static Policy Policy(Guid id, Guid orgId, string number, string client, DateOnly from, DateOnly to, string status, string coverages) =>
-        new() { Id = id, OrganisationId = orgId, PolicyNumber = number, ClientName = client, EffectiveDate = from, ExpirationDate = to, Status = status, CoverageTypes = coverages };
+        new() { Id = id, OrganisationId = orgId, PolicyNumber = number, ClientName = client, EffectiveDate = from, ExpirationDate = to, Status = status, CoverageTypes = coverages, CreatedAt = SeededAt };
 
     private static ClaimStatusTransition Transition(Guid id, ClaimStatus from, ClaimStatus to, string? permission = null) =>
-        new() { Id = id, FromStatus = from, ToStatus = to, RequiredPermission = permission };
+        new() { Id = id, OrganisationId = SeedConstants.DefaultOrganisationId, FromStatus = from, ToStatus = to, RequiredPermission = permission, CreatedAt = SeededAt };
 }

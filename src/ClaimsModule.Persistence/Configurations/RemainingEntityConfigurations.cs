@@ -1,3 +1,4 @@
+using ClaimsModule.Domain.Constants;
 using ClaimsModule.Domain.Entities;
 using ClaimsModule.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +12,10 @@ public class ClaimReserveComponentConfiguration : IEntityTypeConfiguration<Claim
     {
         builder.ToTable("ClaimReserveComponents");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         builder.Property(x => x.Component).HasConversion<string>().HasMaxLength(50);
-        builder.Property(x => x.CurrentAmount).HasPrecision(19, 4);
         builder.Property(x => x.RowVer).IsRowVersion();
-        builder.HasQueryFilter(x => !x.IsDeleted);
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }
 
@@ -24,7 +25,8 @@ public class ClaimDocumentConfiguration : IEntityTypeConfiguration<ClaimDocument
     {
         builder.ToTable("ClaimDocuments");
         builder.HasKey(x => x.Id);
-        builder.HasQueryFilter(x => !x.IsDeleted);
+        builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }
 
@@ -34,8 +36,9 @@ public class ClaimValidationIssueConfiguration : IEntityTypeConfiguration<ClaimV
     {
         builder.ToTable("ClaimValidationIssues");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         builder.Property(x => x.Severity).HasConversion<string>().HasMaxLength(20);
-        builder.HasQueryFilter(x => !x.IsDeleted);
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }
 
@@ -45,7 +48,9 @@ public class CauseOfLossCodeConfiguration : IEntityTypeConfiguration<CauseOfLoss
     {
         builder.ToTable("CauseOfLossCodes");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         builder.HasIndex(x => x.Code).IsUnique();
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }
 
@@ -55,7 +60,9 @@ public class PolicyConfiguration : IEntityTypeConfiguration<Policy>
     {
         builder.ToTable("Policies");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         builder.HasIndex(x => x.PolicyNumber).IsUnique();
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }
 
@@ -65,8 +72,10 @@ public class ClaimStatusTransitionConfiguration : IEntityTypeConfiguration<Claim
     {
         builder.ToTable("ClaimStatusTransitions");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         builder.Property(x => x.FromStatus).HasConversion<string>().HasMaxLength(50);
         builder.Property(x => x.ToStatus).HasConversion<string>().HasMaxLength(50);
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }
 
@@ -76,6 +85,7 @@ public class ClaimRiskObjectConfiguration : IEntityTypeConfiguration<ClaimRiskOb
     {
         builder.ToTable("ClaimRiskObjects");
         builder.HasKey(x => x.Id);
-        builder.HasQueryFilter(x => !x.IsDeleted);
+        builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }

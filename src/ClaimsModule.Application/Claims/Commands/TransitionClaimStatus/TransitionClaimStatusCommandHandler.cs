@@ -35,6 +35,8 @@ public class TransitionClaimStatusCommandHandler(
                 throw new ValidationException("ClaimParties", "At least one Claimant party is required to open a claim.");
             if (claim.HasCriticalValidationIssues())
                 throw new ValidationException("Validation", "Critical validation issues must be resolved before opening.");
+            if (claim.ValidationIssues.Any(v => v.IsActive && v.Code == "LOSS_OUTSIDE_POLICY"))
+                throw new ValidationException("LossDate", "A claim with a loss outside the policy period must remain Draft.");
         }
 
         if (request.TargetStatus == ClaimStatus.Closed)
@@ -76,6 +78,8 @@ public class TransitionClaimStatusCommandHandler(
         var blockers = new List<string>();
         if (claim.ReserveComponents.SelectMany(r => r.History).Any(h => h.ApprovalStatus == ReserveApprovalStatus.PendingApproval))
             blockers.Add("Pending approval reserves exist.");
+        if (claim.GetApprovedReserveTotal() != 0)
+            blockers.Add("Approved reserve balance must be zero.");
         if (claim.HasCriticalValidationIssues())
             blockers.Add("Critical validation issues remain.");
         if (!claim.HasClaimant())

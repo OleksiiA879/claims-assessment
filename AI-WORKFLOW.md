@@ -5,7 +5,8 @@ This report outlines the orchestration strategy, prompt structuring, and collabo
 ---
 
 ## 1. AI Tooling & Context Strategy
-*  Claude 3.5 Sonnet 
+* Claude 3.5 Sonnet and Cursor for the initial scaffold.
+* GitHub Copilot coding agent for the checklist audit, cross-layer remediation, build validation, and deployment automation.
 * **Context Loading Strategy:** The raw Functional Requirements Specification (FRS) and Technical Assessment PDF were parsed into a dedicated markdown context file. This file was attached to the file to ensure all codebase generations conformed strictly to DICEUS structural constraints, naming conventions, and tenant isolation policies from the first prompt.
 
 ---
@@ -20,6 +21,7 @@ This report outlines the orchestration strategy, prompt structuring, and collabo
 1. **Domain-Driven Architecture First:** Modeled pure domain abstractions (`Claim`, `ReserveComponent`) and immutable value objects before generating any boilerplate application services.
 2. **Behavior-Driven Prompting:** Instead of asking for "CRUD APIs," prompts specified the boundaries of MediatR commands, their mapping to business rules (`BR-C-*`), and explicit output expectations.
 3. **Parallelized Agent Execution:** Utilized Cursor Agent workflows to scaffold the Angular 18 Material layouts, reactive forms state structures, and API client abstractions concurrently while the backend test suites and compilation checks were running locally.
+4. **Evidence-Based Remediation:** GitHub Copilot compared the repository to the assessment checklist, implemented only verifiable gaps, and recorded non-code deployment prerequisites instead of inventing Azure URLs or credentials.
 
 ---
 

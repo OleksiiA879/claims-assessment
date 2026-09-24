@@ -7,6 +7,7 @@ import {
   ClaimDetail,
   ClaimSummary,
   ClaimsListParams,
+  CreateClaimPartyRequest,
   CreateClaimRequest,
   CreateReserveRequest,
   PaginatedList,
@@ -74,6 +75,42 @@ export class ClaimsService {
     return this.http.post<void>(
       `${this.baseUrl}/${claimId}/reserves/${reserveHistoryId}/reject`,
       request
+    );
+  }
+
+  retractReserve(claimId: string, reserveHistoryId: string, reason: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.baseUrl}/${claimId}/reserves/${reserveHistoryId}/retract`,
+      { reason }
+    );
+  }
+
+  setManagerReserveOverride(claimId: string, enabled: boolean, reason: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${claimId}/reserves/manager-override`, {
+      enabled,
+      reason,
+    });
+  }
+
+  addParty(claimId: string, request: CreateClaimPartyRequest): Observable<unknown> {
+    return this.http.post(`${this.baseUrl}/${claimId}/parties`, request);
+  }
+
+  deleteParty(claimId: string, partyId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${claimId}/parties/${partyId}`);
+  }
+
+  uploadDocument(claimId: string, documentType: string, file: File): Observable<unknown> {
+    const body = new FormData();
+    body.append('documentType', documentType);
+    body.append('file', file, file.name);
+    return this.http.post(`${this.baseUrl}/${claimId}/documents`, body);
+  }
+
+  downloadDocument(claimId: string, documentId: string): Observable<Blob> {
+    return this.http.get(
+      `${this.baseUrl}/${claimId}/documents/${documentId}/download`,
+      { responseType: 'blob' }
     );
   }
 }

@@ -20,17 +20,23 @@ public class AzureBlobStorageService(IConfiguration configuration) : IStorageSer
         return blobPath;
     }
 
-    public async Task<string> GetDownloadUrlAsync(string blobPath, TimeSpan ttl, CancellationToken cancellationToken = default)
+    public Task<string> GetDownloadUrlAsync(string blobPath, TimeSpan ttl, CancellationToken cancellationToken = default)
     {
         var container = _client.GetBlobContainerClient(_container);
         var blob = container.GetBlobClient(blobPath);
-        if (!blob.CanGenerateSasUri) return blob.Uri.ToString();
+        if (!blob.CanGenerateSasUri) return Task.FromResult(blob.Uri.ToString());
         var sas = new BlobSasBuilder(BlobSasPermissions.Read, DateTimeOffset.UtcNow.Add(ttl))
         {
             BlobContainerName = _container,
             BlobName = blobPath
         };
-        return blob.GenerateSasUri(sas).ToString();
+        return Task.FromResult(blob.GenerateSasUri(sas).ToString());
+    }
+
+    public async Task<Stream> OpenReadAsync(string blobPath, CancellationToken cancellationToken = default)
+    {
+        var blob = _client.GetBlobContainerClient(_container).GetBlobClient(blobPath);
+        return await blob.OpenReadAsync(cancellationToken: cancellationToken);
     }
 
     public async Task DeleteAsync(string blobPath, CancellationToken cancellationToken = default)

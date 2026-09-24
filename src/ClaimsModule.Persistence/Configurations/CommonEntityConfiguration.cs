@@ -1,4 +1,5 @@
 using ClaimsModule.Domain.Common;
+using ClaimsModule.Domain.Constants;
 using ClaimsModule.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,7 +14,7 @@ public class LossEventConfiguration : IEntityTypeConfiguration<LossEvent>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         builder.Property(x => x.EstimatedLossAmount).HasPrecision(19, 4);
-        builder.HasQueryFilter(x => !x.IsDeleted);
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }
 
@@ -23,9 +24,10 @@ public class ClaimPartyConfiguration : IEntityTypeConfiguration<ClaimParty>
     {
         builder.ToTable("ClaimParties");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         builder.Property(x => x.PartyRole).HasConversion<string>().HasMaxLength(50);
         builder.Property(x => x.PartyType).HasConversion<string>().HasMaxLength(20);
-        builder.HasQueryFilter(x => !x.IsDeleted);
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }
 
@@ -35,6 +37,7 @@ public class ReserveHistoryConfiguration : IEntityTypeConfiguration<ReserveHisto
     {
         builder.ToTable("ReserveHistory");
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         builder.Property(x => x.Amount).HasPrecision(19, 4);
         builder.Property(x => x.PreviousBalance).HasPrecision(19, 4);
         builder.Property(x => x.NewBalance).HasPrecision(19, 4);
@@ -42,7 +45,7 @@ public class ReserveHistoryConfiguration : IEntityTypeConfiguration<ReserveHisto
         builder.Property(x => x.PostingStatus).HasConversion<string>().HasMaxLength(50);
         builder.Property(x => x.IdempotencyKey).HasMaxLength(200);
         builder.HasIndex(x => x.IdempotencyKey).IsUnique();
-        builder.HasQueryFilter(x => !x.IsDeleted);
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }
 
@@ -54,5 +57,6 @@ public class ClaimAuditLogConfiguration : IEntityTypeConfiguration<ClaimAuditLog
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasDefaultValueSql("NEWSEQUENTIALID()");
         builder.Property(x => x.EventType).HasMaxLength(100);
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }

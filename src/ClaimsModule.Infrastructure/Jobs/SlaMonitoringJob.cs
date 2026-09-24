@@ -1,5 +1,6 @@
 using ClaimsModule.Application.Common.Interfaces;
 using ClaimsModule.Domain.Enums;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,11 +9,13 @@ namespace ClaimsModule.Infrastructure.Jobs;
 
 public class SlaMonitoringJob(IServiceScopeFactory scopeFactory, ILogger<SlaMonitoringJob> logger)
 {
+    [DisableConcurrentExecution(timeoutInSeconds: 14 * 60)]
     public async Task ExecuteAsync()
     {
         using var scope = scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
         var auditLog = scope.ServiceProvider.GetRequiredService<IAuditLogService>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         var threshold = DateTimeOffset.UtcNow.AddHours(-48);
         var staleClaims = await context.Claims
@@ -36,5 +39,7 @@ public class SlaMonitoringJob(IServiceScopeFactory scopeFactory, ILogger<SlaMoni
                 "Claim has not been updated in 48 hours.");
             logger.LogInformation("SLA breach logged for claim {ClaimId}", claimId);
         }
+
+        await unitOfWork.SaveChangesAsync();
     }
 }

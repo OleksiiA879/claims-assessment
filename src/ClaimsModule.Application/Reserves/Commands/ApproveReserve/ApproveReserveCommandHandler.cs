@@ -37,17 +37,13 @@ public class ApproveReserveCommandHandler(
         history.ApprovedAt = DateTimeOffset.UtcNow;
         history.UpdatedAt = DateTimeOffset.UtcNow;
 
-        if (history.ReserveComponent is not null)
-            history.ReserveComponent.CurrentAmount = history.NewBalance;
-
-        glScheduler.Enqueue(history.Id, history.ClaimId, history.IdempotencyKey);
-
         await auditLog.LogAsync(history.ClaimId, "RESERVE_APPROVED",
             $"Reserve approved: {history.Amount:C}.",
             relatedEntityId: history.Id, relatedEntityType: nameof(ReserveHistory),
             cancellationToken: cancellationToken);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        glScheduler.Enqueue(history.Id, history.ClaimId, history.IdempotencyKey);
         return Unit.Value;
     }
 }

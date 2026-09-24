@@ -1,3 +1,4 @@
+using ClaimsModule.Domain.Constants;
 using ClaimsModule.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -11,5 +12,6 @@ public class ClaimNumberSequenceConfiguration : IEntityTypeConfiguration<ClaimNu
         builder.ToTable("ClaimNumberSequences");
         builder.HasKey(x => new { x.OrganisationId, x.Year });
         builder.Property(x => x.RowVer).IsRowVersion();
+        builder.HasQueryFilter(x => !x.IsDeleted && x.OrganisationId == SeedConstants.DefaultOrganisationId);
     }
 }

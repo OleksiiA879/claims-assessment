@@ -8,8 +8,8 @@ public class CreateReserveCommandValidator : AbstractValidator<CreateReserveComm
     public CreateReserveCommandValidator()
     {
         RuleFor(x => x.Amount)
-            .Must((cmd, amount) => cmd.Component == ReserveComponentType.SubrogationRecoverable || amount > 0)
-            .WithMessage("Reserve amount must be greater than zero.");
+            .Must((cmd, amount) => cmd.TransactionType == ReserveTransactionType.Reverse ? amount < 0 : amount > 0)
+            .WithMessage("Reserve additions must be positive and reversals must be negative.");
 
         RuleFor(x => x.ChangeReason).NotEmpty().MaximumLength(500);
     }

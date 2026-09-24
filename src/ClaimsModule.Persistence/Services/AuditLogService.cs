@@ -5,7 +5,7 @@ namespace ClaimsModule.Persistence.Services;
 
 public class AuditLogService(ClaimsDbContext context, ICurrentUserService currentUser) : IAuditLogService
 {
-    public async Task LogAsync(
+    public Task LogAsync(
         Guid claimId,
         string eventType,
         string description,
@@ -30,6 +30,6 @@ public class AuditLogService(ClaimsDbContext context, ICurrentUserService curren
             CreatedAt = DateTimeOffset.UtcNow,
             CreatedByUserId = currentUser.UserId
         });
-        await context.SaveChangesAsync(cancellationToken);
+        return Task.CompletedTask;
     }
 }

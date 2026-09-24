@@ -91,14 +91,58 @@
               <th mat-header-cell *matHeaderCellDef>Phone</th>
               <td mat-cell *matCellDef="let row">{{ row.phone || '—' }}</td>
             </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let row">
+                <button mat-icon-button color="warn" aria-label="Remove party" (click)="deleteParty(row)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
             <tr mat-header-row *matHeaderRowDef="partyColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: partyColumns"></tr>
           </table>
+
+          <mat-card>
+            <mat-card-header><mat-card-title>Add party</mat-card-title></mat-card-header>
+            <mat-card-content>
+              <form [formGroup]="partyForm" class="status-form" (ngSubmit)="addParty()">
+                <mat-form-field appearance="outline">
+                  <mat-label>Role</mat-label>
+                  <mat-select formControlName="partyRole">
+                    <mat-option value="Claimant">Claimant</mat-option>
+                    <mat-option value="Insured">Insured</mat-option>
+                    <mat-option value="ThirdParty">Third party</mat-option>
+                    <mat-option value="Witness">Witness</mat-option>
+                    <mat-option value="Attorney">Attorney</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Type</mat-label>
+                  <mat-select formControlName="partyType">
+                    <mat-option value="Person">Person</mat-option>
+                    <mat-option value="Company">Company</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>First name</mat-label><input matInput formControlName="firstName" /></mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Last name</mat-label><input matInput formControlName="lastName" /></mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Company</mat-label><input matInput formControlName="companyName" /></mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput formControlName="email" /></mat-form-field>
+                <mat-form-field appearance="outline"><mat-label>Phone</mat-label><input matInput formControlName="phone" /></mat-form-field>
+                <button mat-raised-button color="primary" type="submit" [disabled]="partyForm.invalid">Add party</button>
+              </form>
+            </mat-card-content>
+          </mat-card>
         </div>
       </mat-tab>
 
       <mat-tab label="Reserves">
         <div class="tab-content">
+          @if (auth.role() === 'manager') {
+            <button mat-stroked-button color="primary" (click)="toggleManagerOverride()">
+              {{ c.managerOverrideForReserves ? 'Disable' : 'Enable' }} $10M manager override
+            </button>
+          }
           @for (reserve of c.reserves; track reserve.componentId) {
             <mat-card class="reserve-card">
               <mat-card-header>
@@ -127,6 +171,13 @@
                       <button mat-stroked-button color="warn" (click)="rejectReserve(tx)">
                         Reject
                       </button>
+                    }
+                    @if (
+                      tx.approvalStatus === 'PendingApproval' ||
+                      tx.approvalStatus === 'Approved' ||
+                      tx.approvalStatus === 'AutoApproved'
+                    ) {
+                      <button mat-button color="warn" (click)="retractReserve(tx)">Retract</button>
                     }
                   </div>
                 }
@@ -157,6 +208,7 @@
                   <mat-label>Reason</mat-label>
                   <input matInput formControlName="changeReason" />
                 </mat-form-field>
+                <span>{{ reserveAuthority() }}</span>
                 <button mat-raised-button color="primary" type="submit" [disabled]="reserveForm.invalid">
                   Submit reserve
                 </button>
@@ -185,12 +237,42 @@
               <th mat-header-cell *matHeaderCellDef>Size</th>
               <td mat-cell *matCellDef="let row">{{ formatBytes(row.fileSizeBytes) }}</td>
             </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let row">
+                <button mat-icon-button aria-label="Download document" (click)="downloadDocument(row)">
+                  <mat-icon>download</mat-icon>
+                </button>
+              </td>
+            </ng-container>
             <tr mat-header-row *matHeaderRowDef="documentColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: documentColumns"></tr>
           </table>
           @if (!c.documents.length) {
             <p class="empty-msg">No documents attached.</p>
           }
+          <mat-card>
+            <mat-card-header><mat-card-title>Upload document</mat-card-title></mat-card-header>
+            <mat-card-content class="status-form">
+              <mat-form-field appearance="outline">
+                <mat-label>Document type</mat-label>
+                <input matInput [(ngModel)]="documentType" [ngModelOptions]="{ standalone: true }" />
+              </mat-form-field>
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.txt"
+                (change)="selectDocument($event)"
+              />
+              <button
+                mat-raised-button
+                color="primary"
+                [disabled]="!selectedFile || !documentType.trim()"
+                (click)="uploadDocument()"
+              >
+                Upload
+              </button>
+            </mat-card-content>
+          </mat-card>
         </div>
       </mat-tab>
 

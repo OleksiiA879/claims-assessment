@@ -19,6 +19,10 @@ import {
   AuditLog,
   ClaimDetail,
   ClaimStatus,
+  Document,
+  Party,
+  PartyRole,
+  PartyType,
   ReserveTransaction,
 } from '../../../core/models/claim.models';
 import { ClaimStatusReference } from '../../../core/models/reference.models';
@@ -64,8 +68,8 @@ export class ClaimDetailComponent implements OnInit {
   statusRefs: ClaimStatusReference[] = [];
   allowedTransitions: string[] = [];
 
-  partyColumns = ['displayName', 'partyRole', 'partyType', 'email', 'phone'];
-  documentColumns = ['documentName', 'documentType', 'uploadedAt', 'fileSizeBytes'];
+  partyColumns = ['displayName', 'partyRole', 'partyType', 'email', 'phone', 'actions'];
+  documentColumns = ['documentName', 'documentType', 'uploadedAt', 'fileSizeBytes', 'actions'];
   auditColumns = ['createdAt', 'eventType', 'description', 'oldValue', 'newValue'];
 
   statusForm = this.fb.group({
@@ -79,6 +83,18 @@ export class ClaimDetailComponent implements OnInit {
     changeReason: ['', Validators.required],
   });
 
+  partyForm = this.fb.group({
+    partyRole: ['Claimant' as PartyRole, Validators.required],
+    partyType: ['Person' as PartyType, Validators.required],
+    firstName: [''],
+    lastName: [''],
+    companyName: [''],
+    email: ['', Validators.email],
+    phone: [''],
+  });
+
+  documentType = 'Evidence';
+  selectedFile: File | null = null;
   rejectReason = '';
 
   ngOnInit(): void {
@@ -176,6 +192,104 @@ export class ClaimDetailComponent implements OnInit {
           this.loadClaim(claim.id);
         },
       });
+  }
+
+  retractReserve(tx: ReserveTransaction): void {
+    const claim = this.claim();
+    if (!claim) return;
+    const reason = window.prompt('Reason for retraction');
+    if (!reason?.trim()) return;
+    this.claimsService.retractReserve(claim.id, tx.id, reason.trim()).subscribe({
+      next: () => {
+        this.snackBar.open('Reserve retracted', 'OK', { duration: 3000 });
+        this.loadClaim(claim.id);
+      },
+    });
+  }
+
+  toggleManagerOverride(): void {
+    const claim = this.claim();
+    if (!claim || this.auth.role() !== 'manager') return;
+    const enabled = !claim.managerOverrideForReserves;
+    const reason = window.prompt(`Reason to ${enabled ? 'enable' : 'disable'} the reserve cap override`);
+    if (!reason?.trim()) return;
+    this.claimsService.setManagerReserveOverride(claim.id, enabled, reason.trim()).subscribe({
+      next: () => {
+        this.snackBar.open(`Manager override ${enabled ? 'enabled' : 'disabled'}`, 'OK', {
+          duration: 3000,
+        });
+        this.loadClaim(claim.id);
+      },
+    });
+  }
+
+  addParty(): void {
+    const claim = this.claim();
+    if (!claim || this.partyForm.invalid) return;
+    const value = this.partyForm.getRawValue();
+    this.claimsService.addParty(claim.id, {
+      partyRole: value.partyRole!,
+      partyType: value.partyType!,
+      firstName: value.firstName || undefined,
+      lastName: value.lastName || undefined,
+      companyName: value.companyName || undefined,
+      email: value.email || undefined,
+      phone: value.phone || undefined,
+    }).subscribe({
+      next: () => {
+        this.snackBar.open('Party added', 'OK', { duration: 3000 });
+        this.partyForm.reset({ partyRole: 'Claimant', partyType: 'Person' });
+        this.loadClaim(claim.id);
+      },
+    });
+  }
+
+  deleteParty(party: Party): void {
+    const claim = this.claim();
+    if (!claim || !window.confirm(`Remove ${party.displayName}?`)) return;
+    this.claimsService.deleteParty(claim.id, party.id).subscribe({
+      next: () => {
+        this.snackBar.open('Party removed', 'OK', { duration: 3000 });
+        this.loadClaim(claim.id);
+      },
+    });
+  }
+
+  selectDocument(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedFile = input.files?.item(0) ?? null;
+  }
+
+  uploadDocument(): void {
+    const claim = this.claim();
+    if (!claim || !this.selectedFile || !this.documentType.trim()) return;
+    this.claimsService.uploadDocument(claim.id, this.documentType.trim(), this.selectedFile).subscribe({
+      next: () => {
+        this.snackBar.open('Document uploaded', 'OK', { duration: 3000 });
+        this.selectedFile = null;
+        this.loadClaim(claim.id);
+      },
+    });
+  }
+
+  downloadDocument(document: Document): void {
+    const claim = this.claim();
+    if (!claim) return;
+    this.claimsService.downloadDocument(claim.id, document.id).subscribe((content) => {
+      const url = URL.createObjectURL(content);
+      const anchor = window.document.createElement('a');
+      anchor.href = url;
+      anchor.download = document.documentName;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  reserveAuthority(): string {
+    const amount = Math.abs(this.reserveForm.controls.amount.value ?? 0);
+    if (amount <= 10_000) return 'Automatically approved';
+    if (amount <= 100_000) return 'Supervisor or manager approval required';
+    return 'Manager approval required';
   }
 
   pendingTransactions(): ReserveTransaction[] {
